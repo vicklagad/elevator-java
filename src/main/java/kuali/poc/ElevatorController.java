@@ -14,8 +14,9 @@ public class ElevatorController implements PropertyChangeListener{
 		}
 	}
 	
-	private Elevator findBestElevator(ElevatorRequest er) {
+	private Elevator findBestElevator(int floorRequest) {
 		//algorithm to find best elevator to process this new request
+		//TODO
 		return null;
 	}
 	public void propertyChange(PropertyChangeEvent evt) {
@@ -25,6 +26,19 @@ public class ElevatorController implements PropertyChangeListener{
 		
 		if(eventPropName == Constants.ELEVATOR_EVT_FLOOR_CHANGED) {
 			//elevator floor has been changed
+		}
+		if (eventPropName == Constants.REQUEST_EVT_REQ_MADE) {
+			//new request has been made for a floor, invoke algorithm to find best
+			//elevator
+			int floor = Integer.parseInt(eventNewValue);
+			Elevator e = findBestElevator(floor);
+			e.addFloorToService(floor);
+		}
+		if (eventPropName == Constants.DOOR_EVT_CLOSED) {
+			
+		}
+		if (eventPropName == Constants.DOOR_EVT_OPENED) {
+			
 		}
 		
 	}

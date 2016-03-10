@@ -41,6 +41,10 @@ public class Elevator {
 		this.maxFloors = maxFloors;
 		this.currentFloorsToReach = new TreeSet<Integer>();
 	}
+	
+	public void addFloorToService(int floor) {
+		this.currentFloorsToReach.add(floor);
+	}
 	private void checkCurrentState() {
 		//check current state of itself
 		if (this.currentFloor == this.currentFloorsToReach.first()) {
@@ -98,7 +102,7 @@ public class Elevator {
 				this.currentFloor++;
 				notifyListeners(this, Constants.ELEVATOR_EVT_FLOOR_CHANGED,
 						String.valueOf(this.currentFloor + 1),
-						String.valueOf(currentFloor)); //todo: refactoring needed
+						String.valueOf(currentFloor)); //elevator floor changed event fired
 			}
 		} catch (InterruptedException e) {
 			throw new Exception("Thread wait issue.");
@@ -133,6 +137,9 @@ public class Elevator {
 	public void openDoor() {
 		System.out.println("Open doors for people to get out..");
 		try {
+			notifyListeners(this, Constants.DOOR_EVT_OPENED,
+					"",
+					""); //event itself is self explanatory. no need for old and new values
 			Thread.sleep(Elevator.STUB_WAIT_TIME);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
@@ -143,6 +150,9 @@ public class Elevator {
 		System.out.println("Closing doors");
 		try {
 			Thread.sleep(Elevator.STUB_WAIT_TIME);
+			notifyListeners(this, Constants.DOOR_EVT_CLOSED,
+					"",
+					""); //event itself is self explanatory. no need for old and new values
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
