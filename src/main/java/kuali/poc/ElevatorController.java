@@ -16,6 +16,7 @@ public class ElevatorController implements PropertyChangeListener{
 	
 	private Elevator findBestElevator(ElevatorRequest er) {
 		//algorithm to find best elevator to process this new request
+		return null;
 	}
 	public void propertyChange(PropertyChangeEvent evt) {
 		String eventPropName = evt.getPropertyName();
