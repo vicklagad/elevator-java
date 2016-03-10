@@ -1,10 +1,17 @@
 package kuali.poc;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
 import java.util.List;
 
 /** The main elevator class **/
 
-public abstract class Elevator {
+public class Elevator {
+	
+	//any change in relevant properties of this elevator should
+	//trigger an event on its listener
+	private List<PropertyChangeListener> listeners = new ArrayList<PropertyChangeListener>();
 	private int currentFloor; //current floor this elevator is on
 	
 	public static enum ElevatorStatus {
@@ -38,6 +45,15 @@ public abstract class Elevator {
 	public abstract void start();
 	public abstract void openDoor();
 	public abstract void closeDoor();
+	
+	private void notifyListeners(Object object, String property, String oldValue, String newValue) {
+		for (PropertyChangeListener listener : listeners) {
+			listener.propertyChange(new PropertyChangeEvent(this, property, oldValue, newValue));
+			}
+	}
+	public void addChangeListener(PropertyChangeListener newListener) {
+		listeners.add(newListener);
+	}
 	
 	
 
