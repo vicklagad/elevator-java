@@ -2,12 +2,14 @@ package kuali.poc;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ElevatorController implements PropertyChangeListener{
 	private List<Elevator> elevators;
 	
 	public ElevatorController(int numElevators, int numFloors) {
+		elevators = new ArrayList<Elevator>();
 		for (int i = 0; i < numElevators; i++) {
 			Elevator e = new Elevator(1,numFloors, i+1);
 			elevators.add(e);
@@ -33,6 +35,7 @@ public class ElevatorController implements PropertyChangeListener{
 		
 		if(eventPropName == Constants.ELEVATOR_EVT_FLOOR_CHANGED) {
 			//elevator floor has been changed
+			System.out.println("elevator moved to "+eventNewValue);
 		}
 		if(eventPropName == Constants.ELEVATOR_EVT_UNDER_MAINTENANCE) {
 			//elevator just went under maintenance

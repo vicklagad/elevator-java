@@ -56,6 +56,7 @@ public class Elevator {
 					(this.status == ElevatorStatus.MOVING_DOWN && this.currentFloor > floor)
 				) {
 				//elevator is either idle or moving up/ moving down and can service the requested floor
+				System.out.println("Added floor "+floor+" to service for elevator "+this.id);
 					this.currentFloorsToReach.add(floor);
 			} else {
 				//elevator is moving up or down but cannot service the requested floor as it has passed it
@@ -65,10 +66,11 @@ public class Elevator {
 			//elevator is under maintenance, cannot service the requested floor (or any floors)
 			throw new IllegalStateException("This elevator is under maintenance. Cannot serve floor request");
 		}
+		checkCurrentState();
 	}
 	private void checkCurrentState() {
 		//check current state of itself
-		int nextFloor = -1;
+		int nextFloor = 1;
 		if (this.status == ElevatorStatus.MOVING_UP) {
 			//if elevator is moving up the next floor to stop at is the lowest number in the treeset
 			nextFloor = this.currentFloorsToReach.first();
@@ -76,6 +78,12 @@ public class Elevator {
 			//if elevator is moving down the next floor to stop at is the highest number in the treeset
 			//remember that the elevator will not accept requests that it cannot serve
 			nextFloor = this.currentFloorsToReach.last();
+		} else if (this.status == ElevatorStatus.IDLE) {
+			//elevator is idling, so just pick the first request
+			nextFloor = this.currentFloorsToReach.first();
+		} else {
+			//elevator under maintenance
+			return;
 		}
 		
 		
@@ -103,7 +111,7 @@ public class Elevator {
 				}
 			}
 		}
-		if (this.currentFloorsToReach.size()>0 && this.currentFloor < nextFloor) {
+		if (nextFloor !=-1 && this.currentFloorsToReach.size()>0 && this.currentFloor < nextFloor) {
 			//elevator is under the requested floor
 			try {
 				moveUp(); //move it up
