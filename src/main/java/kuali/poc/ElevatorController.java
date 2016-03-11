@@ -4,6 +4,9 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+
+import kuali.poc.Elevator.ElevatorStatus;
 
 public class ElevatorController implements PropertyChangeListener{
 	private List<Elevator> elevators;
@@ -25,8 +28,47 @@ public class ElevatorController implements PropertyChangeListener{
 	
 	private Elevator findBestElevator(int floorRequest) {
 		//algorithm to find best elevator to process this new request
-		//TODO
-		return elevators.get(0); //return some elevator for now
+		// walk through each elevator to see if it is idling at the requested floor
+		for (Elevator e: elevators) {
+			if (e.getStatus() == ElevatorStatus.IDLE && e.getCurrentFloor() == floorRequest) {
+				return e;
+			}
+		}
+		// walk through each elevator to see if a moving elevator will pass the requested floor
+		for (Elevator e: elevators) {
+			if (e.getStatus() == ElevatorStatus.MOVING_UP && e.getTopMostFloorToBeServiced() >= floorRequest && e.getCurrentFloor() < floorRequest) {
+				return e;
+			}
+			if (e.getStatus() == ElevatorStatus.MOVING_DOWN && e.getBottomMostFloorToBeServiced() <= floorRequest && e.getCurrentFloor() > floorRequest) {
+				return e;
+			}
+		}
+		//walk through each idle elevator and return the closest idle elevator
+		Elevator el = null;
+		int minDist = Integer.MAX_VALUE;
+		for (Elevator e: elevators) {
+			if (e.getStatus() == ElevatorStatus.IDLE) {
+				int diff = Math.abs(e.getCurrentFloor() - floorRequest);
+				if (diff < minDist) {
+					minDist = diff;
+					el = e;
+				}
+			}
+		}
+		if (el!=null) {
+			return el;
+		}
+		try {
+			//no elevators are idle.. so wait for a second and retry
+			Thread.sleep(1000);
+			return findBestElevator(floorRequest);
+		} catch (InterruptedException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		//should not occur
+		return null;
+		
 	}
 	public void propertyChange(PropertyChangeEvent evt) {
 		String eventPropName = evt.getPropertyName();
@@ -35,7 +77,7 @@ public class ElevatorController implements PropertyChangeListener{
 		
 		if(eventPropName == Constants.ELEVATOR_EVT_FLOOR_CHANGED) {
 			//elevator floor has been changed
-			System.out.println("elevator moved to "+eventNewValue);
+			System.out.println("elevator"+ eventOldValue +" moved to "+eventNewValue);
 		}
 		if(eventPropName == Constants.ELEVATOR_EVT_UNDER_MAINTENANCE) {
 			//elevator just went under maintenance

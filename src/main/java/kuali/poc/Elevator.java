@@ -71,10 +71,10 @@ public class Elevator {
 	private void checkCurrentState() {
 		//check current state of itself
 		int nextFloor = 1;
-		if (this.status == ElevatorStatus.MOVING_UP) {
+		if (this.status == ElevatorStatus.MOVING_UP && this.currentFloorsToReach.size()>0) {
 			//if elevator is moving up the next floor to stop at is the lowest number in the treeset
 			nextFloor = this.currentFloorsToReach.first();
-		} else if (this.status == ElevatorStatus.MOVING_DOWN) {
+		} else if (this.status == ElevatorStatus.MOVING_DOWN && this.currentFloorsToReach.size()>0) {
 			//if elevator is moving down the next floor to stop at is the highest number in the treeset
 			//remember that the elevator will not accept requests that it cannot serve
 			nextFloor = this.currentFloorsToReach.last();
@@ -111,7 +111,7 @@ public class Elevator {
 				}
 			}
 		}
-		if (nextFloor !=-1 && this.currentFloorsToReach.size()>0 && this.currentFloor < nextFloor) {
+		if (this.currentFloorsToReach.size()>0 && this.currentFloor < nextFloor) {
 			//elevator is under the requested floor
 			try {
 				moveUp(); //move it up
@@ -148,7 +148,7 @@ public class Elevator {
 				this.currentFloor++;
 				addFloorsVisited();
 				notifyListeners(this, Constants.ELEVATOR_EVT_FLOOR_CHANGED,
-						String.valueOf(this.currentFloor + 1),
+						String.valueOf(this.id),
 						String.valueOf(currentFloor)); //elevator floor changed event fired
 			}
 			checkCurrentState(); //check own current state
@@ -169,7 +169,7 @@ public class Elevator {
 				this.currentFloor--;
 				addFloorsVisited();
 				notifyListeners(this, Constants.ELEVATOR_EVT_FLOOR_CHANGED,
-						String.valueOf(this.currentFloor - 1),
+						String.valueOf(this.id),
 						String.valueOf(currentFloor)); //todo: refactoring needed
 			}
 			checkCurrentState(); //check own current state
@@ -218,8 +218,12 @@ public class Elevator {
 		listeners.add(newListener);
 	}
 	
-	
-
+	public int getTopMostFloorToBeServiced() {
+		return this.currentFloorsToReach.size() > 0 ? this.currentFloorsToReach.last() : this.currentFloor;
+	}
+	public int getBottomMostFloorToBeServiced() {
+		return this.currentFloorsToReach.size() > 0 ? this.currentFloorsToReach.first() : this.currentFloor;
+	}
 	public int getCurrentFloor() {
 		return currentFloor;
 	}
