@@ -31,18 +31,36 @@ public class Elevator {
 	private int floorsPassed;
 	private int maxFloors;
 	private TreeSet<Integer> currentFloorsToReach;
+	private int id;
 	
 	
-	public Elevator(int currentFloor, int maxFloors) {
+	public Elevator(int currentFloor, int maxFloors, int id) {
 		this.status = Elevator.ElevatorStatus.IDLE;
 		this.currentFloor = currentFloor;
 		this.doorStatus = Elevator.DoorStatus.CLOSED;
 		this.maxFloors = maxFloors;
 		this.currentFloorsToReach = new TreeSet<Integer>();
+		this.id = id;
 	}
 	
-	public void addFloorToService(int floor) {
-		this.currentFloorsToReach.add(floor);
+	public void addFloorToService(int floor) throws Exception{
+		if (floor < 1 || floor > this.maxFloors) {
+			throw new IllegalArgumentException("Cannot service floors less than 1 or greater than "+this.maxFloors);
+		}
+		if (this.status != ElevatorStatus.UNDER_MAINTENANCE) {
+			if ( 	(this.status == ElevatorStatus.IDLE )
+					||
+					(this.status == ElevatorStatus.MOVING_UP && this.currentFloor < floor)
+					||
+					(this.status == ElevatorStatus.MOVING_DOWN && this.currentFloor > floor)
+				) {
+					this.currentFloorsToReach.add(floor);
+			} else {
+				throw new IllegalStateException("Sorry, incorrect request sent for this elevator. Please try again.");				
+			}
+		} else {
+			throw new IllegalStateException("This elevator is under maintenance. Cannot serve floor request");
+		}
 	}
 	private void checkCurrentState() {
 		//check current state of itself
@@ -63,7 +81,7 @@ public class Elevator {
 				}
 			}
 		}
-		if (this.currentFloor < this.currentFloorsToReach.first()) {
+		if (this.currentFloorsToReach.size()>0 && this.currentFloor < this.currentFloorsToReach.first()) {
 			//elevator is under the requested floor
 			try {
 				moveUp(); //move it up
@@ -72,7 +90,7 @@ public class Elevator {
 				e.printStackTrace();
 			}
 		} 
-		if (this.currentFloor > this.currentFloorsToReach.first()) {
+		if (this.currentFloorsToReach.size()>0 && this.currentFloor < this.currentFloorsToReach.first()) {
 			//elevator is above the requested floor
 			try {
 				moveDown(); //move it down
@@ -95,7 +113,6 @@ public class Elevator {
 				throw new IllegalStateException("Elevator cannot go up. It is at the top most floor");
 			}
 			Thread.sleep(Elevator.STUB_WAIT_TIME);
-			checkCurrentState(); //check own current state
 			synchronized (this){
 				this.status = Elevator.ElevatorStatus.MOVING_UP;
 				this.currentFloor++;
@@ -103,6 +120,7 @@ public class Elevator {
 						String.valueOf(this.currentFloor + 1),
 						String.valueOf(currentFloor)); //elevator floor changed event fired
 			}
+			checkCurrentState(); //check own current state
 		} catch (InterruptedException e) {
 			throw new Exception("Thread wait issue.");
 		}
@@ -115,7 +133,6 @@ public class Elevator {
 				throw new IllegalStateException("Elevator cannot go down. It is at the bottom most floor");
 			}
 			Thread.sleep(Elevator.STUB_WAIT_TIME);
-			checkCurrentState(); //check own current state
 			synchronized (this){
 				this.status = Elevator.ElevatorStatus.MOVING_DOWN;
 				this.currentFloor--;
@@ -123,6 +140,7 @@ public class Elevator {
 						String.valueOf(this.currentFloor - 1),
 						String.valueOf(currentFloor)); //todo: refactoring needed
 			}
+			checkCurrentState(); //check own current state
 		} catch (InterruptedException e) {
 			throw new Exception("Thread wait issue.");
 		}

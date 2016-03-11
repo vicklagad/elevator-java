@@ -9,15 +9,22 @@ public class ElevatorController implements PropertyChangeListener{
 	
 	public ElevatorController(int numElevators, int numFloors) {
 		for (int i = 0; i < numElevators; i++) {
-			Elevator e = new Elevator(1,numFloors);
+			Elevator e = new Elevator(1,numFloors, i+1);
 			elevators.add(e);
+			e.addChangeListener(this); //this class will handle events from elevators
 		}
+	}
+	
+	public void makeRequest(int floor) {
+		ElevatorRequest er = new ElevatorRequest(floor);
+		er.addChangeListener(this); //this class will handle request events
+		new Thread(er).start(); //submit a request thread and move on
 	}
 	
 	private Elevator findBestElevator(int floorRequest) {
 		//algorithm to find best elevator to process this new request
 		//TODO
-		return null;
+		return elevators.get(0); //return some elevator for now
 	}
 	public void propertyChange(PropertyChangeEvent evt) {
 		String eventPropName = evt.getPropertyName();
@@ -32,7 +39,14 @@ public class ElevatorController implements PropertyChangeListener{
 			//elevator
 			int floor = Integer.parseInt(eventNewValue);
 			Elevator e = findBestElevator(floor);
-			e.addFloorToService(floor);
+			try {
+				e.addFloorToService(floor);
+			} catch (IllegalStateException ex) {
+				//the elevator selected by algorithm could not serve the request, so recreate it
+				makeRequest(floor);
+			} catch (Exception otherEx) {
+				System.out.println("System malfunction -- illegal floor sent."+ otherEx.getMessage());
+			}
 		}
 		if (eventPropName == Constants.DOOR_EVT_CLOSED) {
 			
