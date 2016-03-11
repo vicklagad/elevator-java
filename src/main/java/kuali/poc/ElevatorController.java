@@ -34,6 +34,12 @@ public class ElevatorController implements PropertyChangeListener{
 		if(eventPropName == Constants.ELEVATOR_EVT_FLOOR_CHANGED) {
 			//elevator floor has been changed
 		}
+		if(eventPropName == Constants.ELEVATOR_EVT_UNDER_MAINTENANCE) {
+			//elevator just went under maintenance
+		}
+		if(eventPropName == Constants.ELEVATOR_EVT_READY) {
+			//elevator is ready to take requests (is idling)
+		}
 		if (eventPropName == Constants.REQUEST_EVT_REQ_MADE) {
 			//new request has been made for a floor, invoke algorithm to find best
 			//elevator

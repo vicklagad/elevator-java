@@ -48,23 +48,38 @@ public class Elevator {
 			throw new IllegalArgumentException("Cannot service floors less than 1 or greater than "+this.maxFloors);
 		}
 		if (this.status != ElevatorStatus.UNDER_MAINTENANCE) {
+			//elevator is not undermaintenance
 			if ( 	(this.status == ElevatorStatus.IDLE )
 					||
 					(this.status == ElevatorStatus.MOVING_UP && this.currentFloor < floor)
 					||
 					(this.status == ElevatorStatus.MOVING_DOWN && this.currentFloor > floor)
 				) {
+				//elevator is either idle or moving up/ moving down and can service the requested floor
 					this.currentFloorsToReach.add(floor);
 			} else {
+				//elevator is moving up or down but cannot service the requested floor as it has passed it
 				throw new IllegalStateException("Sorry, incorrect request sent for this elevator. Please try again.");				
 			}
 		} else {
+			//elevator is under maintenance, cannot service the requested floor (or any floors)
 			throw new IllegalStateException("This elevator is under maintenance. Cannot serve floor request");
 		}
 	}
 	private void checkCurrentState() {
 		//check current state of itself
-		if (this.currentFloor == this.currentFloorsToReach.first()) {
+		int nextFloor = -1;
+		if (this.status == ElevatorStatus.MOVING_UP) {
+			//if elevator is moving up the next floor to stop at is the lowest number in the treeset
+			nextFloor = this.currentFloorsToReach.first();
+		} else if (this.status == ElevatorStatus.MOVING_DOWN) {
+			//if elevator is moving down the next floor to stop at is the highest number in the treeset
+			//remember that the elevator will not accept requests that it cannot serve
+			nextFloor = this.currentFloorsToReach.last();
+		}
+		
+		
+		if (this.currentFloor == nextFloor) {
 			this.currentFloorsToReach.remove(currentFloorsToReach.first());
 			openDoor(); 
 			closeDoor();
@@ -75,13 +90,20 @@ public class Elevator {
 				if (this.tripCount >=100) {
 					//too many trips.. maintenance now
 					this.status = ElevatorStatus.UNDER_MAINTENANCE;
+					notifyListeners(this, Constants.ELEVATOR_EVT_UNDER_MAINTENANCE,
+							String.valueOf(this.id),
+							String.valueOf(this.id)); //elevator floor changed event fired
+					
 				} else {
 					//ready to serve
 					this.status = ElevatorStatus.IDLE;
+					notifyListeners(this, Constants.ELEVATOR_EVT_READY,
+							String.valueOf(this.currentFloor),
+							String.valueOf(this.currentFloor)); //elevator ready to serve..is idling
 				}
 			}
 		}
-		if (this.currentFloorsToReach.size()>0 && this.currentFloor < this.currentFloorsToReach.first()) {
+		if (this.currentFloorsToReach.size()>0 && this.currentFloor < nextFloor) {
 			//elevator is under the requested floor
 			try {
 				moveUp(); //move it up
@@ -90,7 +112,7 @@ public class Elevator {
 				e.printStackTrace();
 			}
 		} 
-		if (this.currentFloorsToReach.size()>0 && this.currentFloor < this.currentFloorsToReach.first()) {
+		if (this.currentFloorsToReach.size()>0 && this.currentFloor > nextFloor) {
 			//elevator is above the requested floor
 			try {
 				moveDown(); //move it down
@@ -116,6 +138,7 @@ public class Elevator {
 			synchronized (this){
 				this.status = Elevator.ElevatorStatus.MOVING_UP;
 				this.currentFloor++;
+				addFloorsVisited();
 				notifyListeners(this, Constants.ELEVATOR_EVT_FLOOR_CHANGED,
 						String.valueOf(this.currentFloor + 1),
 						String.valueOf(currentFloor)); //elevator floor changed event fired
@@ -136,6 +159,7 @@ public class Elevator {
 			synchronized (this){
 				this.status = Elevator.ElevatorStatus.MOVING_DOWN;
 				this.currentFloor--;
+				addFloorsVisited();
 				notifyListeners(this, Constants.ELEVATOR_EVT_FLOOR_CHANGED,
 						String.valueOf(this.currentFloor - 1),
 						String.valueOf(currentFloor)); //todo: refactoring needed
